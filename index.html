@@ -1,0 +1,1139 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111827">
+  <title>Voz P2P · Llamadas privadas</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0b1020;
+      --panel: rgba(20, 29, 52, .82);
+      --panel-strong: #18233f;
+      --line: rgba(166, 180, 214, .18);
+      --text: #f7f8ff;
+      --muted: #aab4cf;
+      --accent: #8b7dff;
+      --accent-strong: #7061f4;
+      --success: #46d6a5;
+      --danger: #ff6b81;
+      --warning: #ffc46b;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 15% 0%, rgba(113, 96, 244, .28), transparent 32rem),
+        radial-gradient(circle at 100% 100%, rgba(47, 196, 159, .16), transparent 28rem),
+        var(--bg);
+    }
+
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    button:disabled { cursor: not-allowed; opacity: .48; }
+
+    .shell {
+      width: min(100% - 32px, 760px);
+      margin: 0 auto;
+      padding: 56px 0 42px;
+    }
+
+    .hero { margin-bottom: 28px; }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 14px;
+      color: #bdb5ff;
+      font-size: .76rem;
+      font-weight: 800;
+      letter-spacing: .13em;
+      text-transform: uppercase;
+    }
+    .eyebrow::before {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 0 5px rgba(70, 214, 165, .11);
+      content: "";
+    }
+    h1 {
+      max-width: 580px;
+      margin: 0;
+      font-size: clamp(2.2rem, 6vw, 4rem);
+      letter-spacing: -.055em;
+      line-height: 1.02;
+    }
+    .subtitle {
+      max-width: 520px;
+      margin: 16px 0 0;
+      color: var(--muted);
+      font-size: 1.04rem;
+      line-height: 1.6;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: var(--panel);
+      box-shadow: 0 24px 70px rgba(0, 0, 0, .25);
+      backdrop-filter: blur(18px);
+    }
+
+    .identity { padding: 23px; margin-bottom: 14px; }
+    .section-label {
+      display: block;
+      margin-bottom: 10px;
+      color: var(--muted);
+      font-size: .78rem;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .id-row { display: flex; gap: 10px; }
+    .id-value, input {
+      min-width: 0;
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      outline: none;
+      color: var(--text);
+      background: rgba(6, 10, 24, .48);
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .id-value {
+      display: flex;
+      align-items: center;
+      min-height: 48px;
+      padding: 0 15px;
+      color: #d9d7ff;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: .92rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    input { padding: 14px 15px; }
+    input::placeholder { color: #6f7a99; }
+    input:focus, .id-value:focus-within {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px rgba(139, 125, 255, .13);
+    }
+
+    .button {
+      min-height: 48px;
+      border: 0;
+      border-radius: 13px;
+      padding: 0 18px;
+      color: white;
+      font-weight: 800;
+      transition: transform .2s, filter .2s, background .2s;
+    }
+    .button:not(:disabled):hover { transform: translateY(-2px); filter: brightness(1.08); }
+    .button:active { transform: translateY(0); }
+    .button-primary { background: linear-gradient(135deg, var(--accent), var(--accent-strong)); }
+    .button-secondary { border: 1px solid var(--line); background: rgba(255,255,255,.07); }
+    .button-danger { background: linear-gradient(135deg, #ff7286, #dc4963); }
+    .button-success { background: linear-gradient(135deg, #42d5a3, #20a97c); }
+    .copy-button { flex: 0 0 auto; }
+    .id-form { margin-top: 10px; }
+    .id-form input { flex: 1; }
+    .id-form .button { flex: 0 0 auto; }
+    .id-hint { margin: 8px 3px 0; color: #8e9aba; font-size: .78rem; line-height: 1.45; }
+
+    .call-card { padding: 23px; }
+    .call-card h2 { margin: 0 0 6px; font-size: 1.35rem; letter-spacing: -.025em; }
+    .call-card p { margin: 0 0 18px; color: var(--muted); line-height: 1.5; }
+    .call-row { display: flex; gap: 10px; }
+    .call-row input { flex: 1; }
+    .call-row .button { flex: 0 0 auto; }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      min-height: 64px;
+      margin-top: 14px;
+      padding: 14px 16px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      color: var(--muted);
+      background: rgba(6, 10, 24, .28);
+      line-height: 1.4;
+    }
+    .status-dot { flex: 0 0 auto; width: 10px; height: 10px; border-radius: 50%; background: var(--warning); }
+    .status[data-type="success"] .status-dot { background: var(--success); box-shadow: 0 0 0 5px rgba(70,214,165,.1); }
+    .status[data-type="error"] .status-dot { background: var(--danger); }
+    .status[data-type="busy"] .status-dot { animation: pulse 1.2s infinite; }
+    @keyframes pulse { 50% { opacity: .35; transform: scale(.72); } }
+
+    .active-call {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 18px;
+      margin-top: 14px;
+      padding: 22px 23px;
+      border: 1px solid rgba(70, 214, 165, .25);
+      border-radius: 20px;
+      background: linear-gradient(120deg, rgba(33, 115, 99, .27), rgba(21, 36, 62, .7));
+    }
+    .active-call h2 { margin: 0 0 5px; font-size: 1.1rem; }
+    .active-call p { margin: 0; color: #abd8c8; font-size: .91rem; }
+    .active-actions { display: flex; flex-direction: column; gap: 9px; }
+    .active-actions .button { min-width: 125px; }
+    .screen-share-card {
+      margin-top: 14px;
+      padding: 23px;
+    }
+    .screen-share-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 15px;
+    }
+    .screen-share-actions { display: flex; flex: 0 0 auto; gap: 9px; }
+    .screen-share-actions .button { min-height: 40px; padding: 0 13px; font-size: .82rem; }
+    .screen-share-card h2 { margin: 0 0 5px; font-size: 1.18rem; letter-spacing: -.025em; }
+    .screen-share-card p { margin: 0; color: var(--muted); font-size: .9rem; }
+    .screen-share-video {
+      display: block;
+      width: 100%;
+      max-height: 440px;
+      min-height: 170px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      object-fit: contain;
+      background: #050914;
+    }
+    .screen-share-video:fullscreen {
+      width: 100vw;
+      height: 100vh;
+      max-height: none;
+      min-height: 0;
+      border: 0;
+      border-radius: 0;
+      background: #050914;
+    }
+    .sound-wave { display: flex; align-items: center; gap: 4px; height: 24px; margin-top: 13px; }
+    .sound-wave span { width: 4px; height: 10px; border-radius: 4px; background: var(--success); animation: wave 1s ease-in-out infinite; }
+    .sound-wave span:nth-child(2) { animation-delay: .15s; height: 17px; }
+    .sound-wave span:nth-child(3) { animation-delay: .3s; height: 23px; }
+    .sound-wave span:nth-child(4) { animation-delay: .45s; height: 14px; }
+    .sound-wave span:nth-child(5) { animation-delay: .6s; height: 19px; }
+    @keyframes wave { 50% { transform: scaleY(.45); opacity: .55; } }
+
+    .incoming {
+      margin-top: 14px;
+      padding: 20px 23px;
+      border: 1px solid rgba(255, 196, 107, .35);
+      border-radius: 20px;
+      background: rgba(119, 78, 27, .19);
+    }
+    .incoming h2 { margin: 0 0 5px; font-size: 1.1rem; }
+    .incoming p { margin: 0 0 15px; color: #f4d29f; overflow-wrap: anywhere; }
+    .incoming-actions { display: flex; gap: 10px; }
+    .incoming-actions .button { flex: 1; }
+
+    .chat-card {
+      margin-top: 14px;
+      padding: 23px;
+    }
+    .chat-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .chat-card h2 { margin: 0 0 5px; font-size: 1.18rem; letter-spacing: -.025em; }
+    .chat-card p { margin: 0; color: var(--muted); font-size: .9rem; }
+    .chat-lock {
+      display: grid;
+      flex: 0 0 auto;
+      width: 34px;
+      height: 34px;
+      place-items: center;
+      border: 1px solid rgba(70, 214, 165, .24);
+      border-radius: 11px;
+      color: var(--success);
+      background: rgba(70, 214, 165, .1);
+      font-size: 1rem;
+    }
+    .chat-messages {
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      min-height: 116px;
+      max-height: 260px;
+      overflow-y: auto;
+      padding: 13px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(6, 10, 24, .3);
+      scrollbar-color: var(--accent) transparent;
+    }
+    .chat-empty {
+      align-self: center;
+      margin: auto;
+      color: #7f8aa8 !important;
+      font-size: .85rem !important;
+      text-align: center;
+    }
+    .chat-message {
+      max-width: 82%;
+      padding: 10px 12px;
+      border: 1px solid rgba(139, 125, 255, .2);
+      border-radius: 14px 14px 14px 4px;
+      color: #e9e8ff;
+      background: rgba(112, 97, 244, .18);
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+    }
+    .chat-message.mine {
+      align-self: flex-end;
+      border-color: rgba(70, 214, 165, .2);
+      border-radius: 14px 14px 4px 14px;
+      background: rgba(33, 145, 111, .2);
+    }
+    .chat-message time {
+      display: block;
+      margin-top: 5px;
+      color: #8793b1;
+      font-size: .7rem;
+      text-align: right;
+    }
+    .chat-notice {
+      align-self: center;
+      color: #8190ae !important;
+      font-size: .75rem !important;
+      text-align: center;
+    }
+    .chat-form {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .chat-form input { flex: 1; }
+    .chat-form .button { flex: 0 0 auto; }
+
+    .help {
+      display: flex;
+      gap: 10px;
+      margin: 18px 3px 0;
+      color: #8e9aba;
+      font-size: .84rem;
+      line-height: 1.55;
+    }
+    .help strong { color: #c7cde0; }
+    .footer { margin-top: 28px; color: #697694; font-size: .78rem; text-align: center; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+    [hidden] { display: none !important; }
+
+    @media (max-width: 580px) {
+      .shell { width: min(100% - 22px, 760px); padding-top: 34px; }
+      .identity, .call-card, .chat-card, .screen-share-card { padding: 18px; border-radius: 19px; }
+      .id-row, .call-row, .chat-form { flex-direction: column; }
+      .copy-button, .call-row .button, .chat-form .button { width: 100%; }
+      .active-call { grid-template-columns: 1fr; padding: 18px; }
+      .active-actions .button { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="hero">
+      <p class="eyebrow">Llamadas directas · PeerJS</p>
+      <h1>Habla con alguien,<br><em>sin intermediarios.</em></h1>
+      <p class="subtitle">Una llamada de voz privada entre dos navegadores. Comparte tu ID, pega el de tu amigo y listo.</p>
+    </header>
+
+    <section class="card identity" aria-labelledby="my-id-title">
+      <span id="my-id-title" class="section-label">Tu ID de llamada</span>
+      <div class="id-row">
+        <div id="my-id" class="id-value" tabindex="0" aria-live="polite">Generando tu ID…</div>
+        <button id="copy-button" class="button button-secondary copy-button" type="button" disabled>Copiar ID</button>
+      </div>
+      <form id="custom-id-form" class="call-row id-form">
+        <label class="sr-only" for="custom-id">Elige tu propio ID permanente</label>
+        <input id="custom-id" name="custom-id" type="text" autocomplete="off" spellcheck="false" maxlength="50" placeholder="Elige tu propio ID (ej. tu nombre)">
+        <button class="button button-secondary" type="submit">Usar este ID</button>
+      </form>
+      <p class="id-hint">Tu ID se guarda en este navegador y se reutiliza siempre. Puedes cambiarlo por uno propio para que sea fácil de recordar y compartir.</p>
+    </section>
+
+    <section class="card call-card" aria-labelledby="call-title">
+      <h2 id="call-title">Llamar a un amigo</h2>
+      <p>Introduce el ID exacto que te ha compartido la otra persona.</p>
+      <form id="call-form" class="call-row">
+        <label class="sr-only" for="friend-id">ID de tu amigo</label>
+        <input id="friend-id" name="friend-id" type="text" autocomplete="off" spellcheck="false" placeholder="Pega aquí el ID de tu amigo" required>
+        <button id="call-button" class="button button-primary" type="submit" disabled>Llamar</button>
+      </form>
+      <div id="status" class="status" data-type="loading" role="status" aria-live="polite">
+        <span class="status-dot" aria-hidden="true"></span>
+        <span id="status-text">Conectando con el servicio de llamadas…</span>
+      </div>
+    </section>
+
+    <section id="incoming-panel" class="incoming" hidden aria-labelledby="incoming-title">
+      <h2 id="incoming-title">Llamada entrante</h2>
+      <p><strong id="incoming-id"></strong> quiere hablar contigo.</p>
+      <div class="incoming-actions">
+        <button id="accept-button" class="button button-success" type="button">Aceptar</button>
+        <button id="reject-button" class="button button-secondary" type="button">Rechazar</button>
+      </div>
+    </section>
+
+    <section id="active-call" class="active-call" hidden aria-labelledby="active-title">
+      <div>
+        <h2 id="active-title">Llamada en curso</h2>
+        <p id="active-peer">Audio conectado de extremo a extremo.</p>
+        <div class="sound-wave" aria-label="Audio activo"><span></span><span></span><span></span><span></span><span></span></div>
+      </div>
+      <div class="active-actions">
+        <button id="enable-audio" class="button button-secondary" type="button" hidden>Activar audio</button>
+        <button id="share-screen" class="button button-secondary" type="button" disabled>Compartir pantalla</button>
+        <button id="stop-screen" class="button button-secondary" type="button" hidden>Dejar de compartir</button>
+        <button id="hangup-button" class="button button-danger" type="button">Colgar</button>
+      </div>
+    </section>
+
+    <section id="screen-panel" class="card screen-share-card" hidden aria-labelledby="screen-title">
+      <div class="screen-share-header">
+        <div>
+          <h2 id="screen-title">Pantalla compartida</h2>
+          <p id="screen-state" aria-live="polite">Preparando la pantalla…</p>
+        </div>
+        <div class="screen-share-actions">
+          <button id="fullscreen-screen" class="button button-secondary" type="button" aria-label="Ver pantalla compartida en pantalla completa">Pantalla completa</button>
+        </div>
+      </div>
+      <video id="remote-screen" class="screen-share-video" autoplay playsinline muted></video>
+    </section>
+
+    <section id="chat-panel" class="card chat-card" hidden aria-labelledby="chat-title">
+      <div class="chat-header">
+        <div>
+          <h2 id="chat-title">Chat privado</h2>
+          <p id="chat-state">Conectando el chat…</p>
+        </div>
+        <span class="chat-lock" aria-label="Conexión directa y privada">⌁</span>
+      </div>
+      <div id="chat-messages" class="chat-messages" role="log" aria-live="polite" aria-relevant="additions">
+        <p class="chat-empty">Cuando el chat esté conectado, tus mensajes aparecerán aquí.</p>
+      </div>
+      <form id="chat-form" class="chat-form">
+        <label class="sr-only" for="chat-input">Escribe un mensaje</label>
+        <input id="chat-input" type="text" maxlength="1000" autocomplete="off" placeholder="Escribe un mensaje…" disabled>
+        <button id="chat-send" class="button button-primary" type="submit" disabled>Enviar</button>
+      </form>
+    </section>
+
+    <p class="help"><span aria-hidden="true">ⓘ</span><span><strong>Antes de llamar:</strong> permite el acceso al micrófono cuando el navegador lo solicite. Para compartir pantalla, el navegador también pedirá permiso. Sirve este archivo desde <code>localhost</code> (por ejemplo, con <code>python -m http.server</code>).</span></p>
+    <p class="footer">El audio y los mensajes viajan mediante WebRTC. PeerJS solo facilita el descubrimiento inicial de los usuarios.</p>
+  </main>
+
+  <audio id="remote-audio" autoplay></audio>
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <script>
+    (() => {
+      'use strict';
+
+      const elements = {
+        myId: document.getElementById('my-id'),
+        copyButton: document.getElementById('copy-button'),
+        callForm: document.getElementById('call-form'),
+        friendId: document.getElementById('friend-id'),
+        callButton: document.getElementById('call-button'),
+        status: document.getElementById('status'),
+        statusText: document.getElementById('status-text'),
+        incomingPanel: document.getElementById('incoming-panel'),
+        incomingId: document.getElementById('incoming-id'),
+        acceptButton: document.getElementById('accept-button'),
+        rejectButton: document.getElementById('reject-button'),
+        activeCall: document.getElementById('active-call'),
+        activePeer: document.getElementById('active-peer'),
+        hangupButton: document.getElementById('hangup-button'),
+        enableAudio: document.getElementById('enable-audio'),
+        shareScreen: document.getElementById('share-screen'),
+        stopScreen: document.getElementById('stop-screen'),
+        screenPanel: document.getElementById('screen-panel'),
+        screenState: document.getElementById('screen-state'),
+        fullscreenScreen: document.getElementById('fullscreen-screen'),
+        remoteScreen: document.getElementById('remote-screen'),
+        remoteAudio: document.getElementById('remote-audio'),
+        chatPanel: document.getElementById('chat-panel'),
+        chatState: document.getElementById('chat-state'),
+        chatMessages: document.getElementById('chat-messages'),
+        chatForm: document.getElementById('chat-form'),
+        chatInput: document.getElementById('chat-input'),
+        chatSend: document.getElementById('chat-send'),
+        customIdForm: document.getElementById('custom-id-form'),
+        customIdInput: document.getElementById('custom-id')
+      };
+
+      const PERSISTED_PEER_ID_KEY = 'voz-p2p.peer-id';
+
+      let peer = null;
+      let localStream = null;
+      let activeCall = null;
+      let incomingCall = null;
+      let incomingCallCancelled = false;
+      let dataConnection = null;
+      let pendingDataConnection = null;
+      let pendingDataTimeout = null;
+      let screenCall = null;
+      let screenStream = null;
+      let audioConnected = false;
+
+      function readPersistedPeerId() {
+        try {
+          return window.localStorage.getItem(PERSISTED_PEER_ID_KEY) || '';
+        } catch (error) {
+          console.warn('No se pudo leer el ID guardado:', error);
+          return '';
+        }
+      }
+
+      function persistPeerId(id) {
+        try {
+          window.localStorage.setItem(PERSISTED_PEER_ID_KEY, id);
+        } catch (error) {
+          console.warn('No se pudo guardar el ID para futuras sesiones:', error);
+        }
+      }
+
+      function setStatus(message, type = 'loading') {
+        elements.status.dataset.type = type;
+        elements.statusText.textContent = message;
+      }
+
+      function setChatState(message, type = 'connecting') {
+        elements.chatState.textContent = message;
+        elements.chatState.dataset.type = type;
+      }
+
+      function setScreenState(message) {
+        elements.screenState.textContent = message;
+      }
+
+      function updateScreenControls() {
+        elements.shareScreen.disabled = !activeCall || !audioConnected || Boolean(screenCall) || !navigator.mediaDevices?.getDisplayMedia;
+        elements.stopScreen.hidden = !screenStream;
+        elements.fullscreenScreen.disabled = !elements.remoteScreen.srcObject || typeof elements.remoteScreen.requestFullscreen !== 'function';
+        const isFullscreen = document.fullscreenElement === elements.remoteScreen;
+        elements.fullscreenScreen.textContent = isFullscreen ? 'Salir de pantalla completa' : 'Pantalla completa';
+        elements.fullscreenScreen.setAttribute('aria-label', isFullscreen
+          ? 'Salir de pantalla completa'
+          : 'Ver pantalla compartida en pantalla completa');
+      }
+
+      async function toggleScreenFullscreen() {
+        try {
+          if (document.fullscreenElement === elements.remoteScreen) {
+            await document.exitFullscreen();
+          } else if (elements.remoteScreen.requestFullscreen) {
+            await elements.remoteScreen.requestFullscreen();
+          }
+        } catch (error) {
+          console.error('No se pudo cambiar a pantalla completa:', error);
+          setStatus('No se pudo activar la pantalla completa en este navegador.', 'error');
+        }
+      }
+
+      function resetRemoteScreen() {
+        if (document.fullscreenElement === elements.remoteScreen) {
+          document.exitFullscreen().catch(() => {});
+        }
+        elements.remoteScreen.srcObject = null;
+        elements.screenPanel.hidden = true;
+        setScreenState('Esperando una pantalla compartida…');
+        updateScreenControls();
+      }
+
+      function stopLocalScreenStream() {
+        if (!screenStream) return;
+        screenStream.getTracks().forEach((track) => track.stop());
+        screenStream = null;
+      }
+
+      function stopScreenSharing(showStatus = true) {
+        const call = screenCall;
+        screenCall = null;
+        if (call) call.close();
+        stopLocalScreenStream();
+        resetRemoteScreen();
+        updateScreenControls();
+        if (showStatus && activeCall) setStatus('Dejaste de compartir pantalla.', 'success');
+      }
+
+      function listenToScreenCall(call, isOutgoing = false) {
+        screenCall = call;
+        if (isOutgoing) {
+          elements.remoteScreen.srcObject = screenStream;
+          elements.screenPanel.hidden = false;
+          setScreenState('Estás compartiendo tu pantalla.');
+        }
+        call.on('stream', (remoteStream) => {
+          if (screenCall !== call || isOutgoing) return;
+          elements.remoteScreen.srcObject = remoteStream;
+          elements.screenPanel.hidden = false;
+          setScreenState('Tu amigo está compartiendo su pantalla contigo.');
+          elements.remoteScreen.play().catch(() => {
+            setScreenState('La pantalla está lista. Pulsa sobre el vídeo para verla.');
+          });
+        });
+        call.on('close', () => {
+          if (screenCall !== call) return;
+          screenCall = null;
+          if (isOutgoing) stopLocalScreenStream();
+          resetRemoteScreen();
+          updateScreenControls();
+          if (activeCall) setStatus('La compartición de pantalla terminó.', 'success');
+        });
+        call.on('error', (error) => {
+          console.error('Error al compartir pantalla:', error);
+          if (screenCall !== call) return;
+          screenCall = null;
+          if (isOutgoing) stopLocalScreenStream();
+          resetRemoteScreen();
+          updateScreenControls();
+          if (activeCall) setStatus('No se pudo compartir la pantalla.', 'error');
+        });
+        if (!isOutgoing) {
+          try {
+            call.answer(new MediaStream());
+          } catch (error) {
+            console.error('No se pudo aceptar la pantalla:', error);
+            call.close();
+          }
+        }
+        updateScreenControls();
+      }
+
+      async function startScreenSharing() {
+        if (!activeCall || !audioConnected || screenCall) return;
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+          setStatus('Este navegador no permite compartir pantalla.', 'error');
+          return;
+        }
+        try {
+          elements.shareScreen.disabled = true;
+          setStatus('Selecciona qué quieres compartir…', 'busy');
+          screenStream = await navigator.mediaDevices.getDisplayMedia({
+            video: { cursor: 'always' },
+            audio: false
+          });
+          const screenTrack = screenStream.getVideoTracks()[0];
+          screenTrack.addEventListener('ended', () => {
+            if (screenStream && screenStream.getVideoTracks()[0] === screenTrack) stopScreenSharing(false);
+          }, { once: true });
+          const call = peer.call(activeCall.peer, screenStream, {
+            metadata: { type: 'screen' }
+          });
+          if (!call) throw new Error('PeerJS no pudo iniciar la compartición.');
+          listenToScreenCall(call, true);
+          setStatus('Compartiendo tu pantalla.', 'success');
+        } catch (error) {
+          console.error(error);
+          stopLocalScreenStream();
+          screenCall = null;
+          updateScreenControls();
+          if (error.name !== 'NotAllowedError') setStatus(error.message || 'No se pudo compartir la pantalla.', 'error');
+          else setStatus('Compartición cancelada.', 'success');
+        }
+      }
+
+      function appendChatNotice(message) {
+        elements.chatMessages.querySelector('.chat-empty')?.remove();
+        const notice = document.createElement('p');
+        notice.className = 'chat-notice';
+        notice.textContent = message;
+        elements.chatMessages.appendChild(notice);
+        elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
+      }
+
+      function appendChatMessage(message, direction) {
+        elements.chatMessages.querySelector('.chat-empty')?.remove();
+        elements.chatMessages.querySelectorAll('.chat-message').forEach((bubble, index, messages) => {
+          if (index < messages.length - 199) bubble.remove();
+        });
+        const bubble = document.createElement('div');
+        bubble.className = 'chat-message' + (direction === 'mine' ? ' mine' : '');
+        bubble.textContent = message;
+        const time = document.createElement('time');
+        time.dateTime = new Date().toISOString();
+        time.textContent = new Intl.DateTimeFormat('es-ES', {
+          hour: '2-digit',
+          minute: '2-digit'
+        }).format(new Date());
+        bubble.appendChild(time);
+        elements.chatMessages.appendChild(bubble);
+        elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
+      }
+
+      function showChatConnecting() {
+        elements.chatPanel.hidden = false;
+        elements.chatInput.disabled = true;
+        elements.chatSend.disabled = true;
+        setChatState('Conectando el chat privado…', 'connecting');
+      }
+
+      function hideChat() {
+        elements.chatPanel.hidden = true;
+        elements.chatInput.disabled = true;
+        elements.chatSend.disabled = true;
+      }
+
+      function closeDataConnection() {
+        const connection = dataConnection;
+        const pendingConnection = pendingDataConnection;
+        dataConnection = null;
+        pendingDataConnection = null;
+        if (pendingDataTimeout) clearTimeout(pendingDataTimeout);
+        pendingDataTimeout = null;
+        hideChat();
+        [connection, pendingConnection].forEach((currentConnection) => {
+          if (!currentConnection) return;
+          try { currentConnection.close(); } catch (error) { console.warn('No se pudo cerrar el chat:', error); }
+        });
+      }
+
+      function setupDataConnection(connection) {
+        if (dataConnection && dataConnection !== connection) {
+          connection.close();
+          return;
+        }
+
+        pendingDataConnection = null;
+        if (pendingDataTimeout) clearTimeout(pendingDataTimeout);
+        pendingDataTimeout = null;
+        dataConnection = connection;
+        elements.chatMessages.innerHTML = '<p class="chat-empty">Cuando el chat esté conectado, tus mensajes aparecerán aquí.</p>';
+        showChatConnecting();
+
+        let connectionOpened = false;
+        const handleOpen = () => {
+          if (connectionOpened) return;
+          connectionOpened = true;
+          if (dataConnection !== connection) {
+            connection.close();
+            return;
+          }
+          elements.chatPanel.hidden = false;
+          elements.chatInput.disabled = false;
+          elements.chatSend.disabled = false;
+          setChatState('Conectado directamente con tu amigo.', 'success');
+          appendChatNotice('Chat conectado. Los mensajes no pasan por un servidor intermedio.');
+        };
+
+        connection.on('open', handleOpen);
+        connection.on('data', (data) => {
+          if (dataConnection !== connection) return;
+          const message = data && data.type === 'chat' ? data.text : null;
+          if (typeof message !== 'string' || !message.trim()) return;
+          appendChatMessage(message.trim().slice(0, 1000), 'theirs');
+        });
+        connection.on('close', () => {
+          if (dataConnection !== connection) return;
+          dataConnection = null;
+          elements.chatInput.disabled = true;
+          elements.chatSend.disabled = true;
+          setChatState('Chat desconectado; la llamada puede continuar.', 'error');
+        });
+        connection.on('error', (error) => {
+          console.error('Error en el chat:', error);
+          if (dataConnection !== connection) return;
+          dataConnection = null;
+          setChatState('El chat no está disponible.', 'error');
+          elements.chatInput.disabled = true;
+          elements.chatSend.disabled = true;
+          try { connection.close(); } catch (closeError) { console.warn('No se pudo cerrar el chat:', closeError); }
+        });
+
+        if (connection.open) handleOpen();
+      }
+
+      function showIncoming(call) {
+        incomingCall = call;
+        incomingCallCancelled = false;
+        if (pendingDataConnection) {
+          const connection = pendingDataConnection;
+          pendingDataConnection = null;
+          if (pendingDataTimeout) clearTimeout(pendingDataTimeout);
+          pendingDataTimeout = null;
+          if (connection.peer === call.peer) setupDataConnection(connection);
+          else connection.close();
+        }
+        elements.incomingId.textContent = call.peer;
+        elements.incomingPanel.hidden = false;
+        elements.callButton.disabled = true;
+        setStatus('Tienes una llamada entrante.', 'loading');
+
+        call.on('close', () => {
+          if (incomingCall !== call) return;
+          incomingCallCancelled = true;
+          hideIncoming();
+          closeDataConnection();
+          setStatus('La llamada entrante fue cancelada.', 'success');
+        });
+
+        call.on('error', (error) => {
+          console.error('Error en la llamada entrante:', error);
+          if (incomingCall !== call) return;
+          hideIncoming();
+          closeDataConnection();
+          setStatus('La llamada entrante no está disponible.', 'error');
+        });
+      }
+
+      function hideIncoming() {
+        incomingCall = null;
+        elements.incomingPanel.hidden = true;
+        elements.callButton.disabled = Boolean(activeCall) || !peer || peer.destroyed;
+      }
+
+      async function getMicrophone() {
+        if (localStream && localStream.active) return localStream;
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          throw new Error('Este navegador no permite acceder al micrófono en este contexto.');
+        }
+        localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+        return localStream;
+      }
+
+      function listenToCall(call) {
+        call.on('stream', (remoteStream) => {
+          if (activeCall !== call) return;
+          elements.remoteAudio.srcObject = remoteStream;
+          elements.enableAudio.hidden = false;
+          elements.remoteAudio.play().then(() => {
+            elements.enableAudio.hidden = true;
+          }).catch(() => {
+            setStatus('El navegador bloqueó el audio automático. Pulsa “Activar audio”.', 'success');
+          });
+          elements.activeCall.hidden = false;
+          elements.activePeer.textContent = 'Audio conectado de extremo a extremo.';
+          audioConnected = true;
+          updateScreenControls();
+          setStatus('Llamada conectada.', 'success');
+        });
+
+        call.on('close', () => {
+          if (activeCall === call) endCall('La otra persona ha colgado.');
+        });
+
+        call.on('error', (error) => {
+          console.error('Error en la llamada:', error);
+          if (activeCall === call) endCall('La llamada terminó por un error.', 'error');
+          else setStatus('No se pudo establecer la llamada.', 'error');
+        });
+      }
+
+      function finishLocalStream() {
+        if (!localStream) return;
+        localStream.getTracks().forEach((track) => track.stop());
+        localStream = null;
+      }
+
+      function endCall(message = 'Llamada finalizada.', type = 'success') {
+        const call = activeCall;
+        activeCall = null;
+        audioConnected = false;
+        stopScreenSharing(false);
+        if (call) call.close();
+        finishLocalStream();
+        elements.remoteAudio.srcObject = null;
+        elements.enableAudio.hidden = true;
+        closeDataConnection();
+        elements.activeCall.hidden = true;
+        elements.callButton.disabled = !peer || peer.destroyed;
+        setStatus(message, type);
+      }
+
+      async function startOutgoingCall(friendId) {
+        if (!peer || peer.destroyed) return;
+        if (incomingCall) {
+          setStatus('Responde o rechaza primero la llamada entrante.', 'error');
+          return;
+        }
+        if (friendId === peer.id) {
+          setStatus('No puedes llamarte a ti mismo.', 'error');
+          return;
+        }
+        if (activeCall) endCall('Llamada anterior finalizada.');
+
+        try {
+          elements.callButton.disabled = true;
+          setStatus('Solicitando acceso al micrófono…', 'busy');
+          const stream = await getMicrophone();
+          setStatus('Llamando… espera a que respondan.', 'busy');
+          setupDataConnection(peer.connect(friendId, { reliable: true }));
+          activeCall = peer.call(friendId, stream);
+          if (!activeCall) throw new Error('PeerJS no pudo crear la llamada.');
+          elements.activePeer.textContent = 'Llamando a ' + friendId;
+          elements.activeCall.hidden = false;
+          listenToCall(activeCall);
+        } catch (error) {
+          console.error(error);
+          finishLocalStream();
+          closeDataConnection();
+          elements.activeCall.hidden = true;
+          audioConnected = false;
+          updateScreenControls();
+          elements.callButton.disabled = false;
+          setStatus(error.message || 'No se pudo iniciar la llamada.', 'error');
+        }
+      }
+
+      async function acceptIncomingCall() {
+        const call = incomingCall;
+        if (!call) return;
+        elements.incomingPanel.hidden = true;
+        elements.callButton.disabled = true;
+        try {
+          elements.acceptButton.disabled = true;
+          setStatus('Solicitando acceso al micrófono…', 'busy');
+          const stream = await getMicrophone();
+          if (incomingCallCancelled) throw new Error('La llamada fue cancelada por la otra persona.');
+          activeCall = call;
+          audioConnected = false;
+          updateScreenControls();
+          hideIncoming();
+          call.answer(stream);
+          elements.activePeer.textContent = 'En llamada con ' + call.peer;
+          elements.activeCall.hidden = false;
+          listenToCall(call);
+        } catch (error) {
+          console.error(error);
+          activeCall = null;
+          call.close();
+          finishLocalStream();
+          elements.activeCall.hidden = true;
+          audioConnected = false;
+          updateScreenControls();
+          closeDataConnection();
+          elements.callButton.disabled = !peer || peer.destroyed;
+          setStatus(error.message || 'No se pudo aceptar la llamada.', 'error');
+        } finally {
+          elements.acceptButton.disabled = false;
+        }
+      }
+
+      function rejectIncomingCall() {
+        if (incomingCall) incomingCall.close();
+        closeDataConnection();
+        hideIncoming();
+        setStatus('Llamada rechazada.', 'success');
+      }
+
+      async function copyId() {
+        const id = elements.myId.textContent;
+        if (!id || id.includes('Generando')) return;
+        try {
+          if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(id);
+          } else {
+            const helper = document.createElement('textarea');
+            helper.value = id;
+            helper.style.position = 'fixed';
+            helper.style.opacity = '0';
+            document.body.appendChild(helper);
+            helper.select();
+            document.execCommand('copy');
+            helper.remove();
+          }
+          const previousText = elements.copyButton.textContent;
+          elements.copyButton.textContent = '¡Copiado!';
+          setTimeout(() => { elements.copyButton.textContent = previousText; }, 1600);
+        } catch (error) {
+          setStatus('No se pudo copiar automáticamente. Selecciona tu ID y cópialo manualmente.', 'error');
+        }
+      }
+
+      if (typeof Peer === 'undefined') {
+        setStatus('No se pudo cargar PeerJS. Comprueba tu conexión a Internet.', 'error');
+        return;
+      }
+
+      let attemptedPeerId = '';
+
+      function validateCustomId(value) {
+        const id = value.trim().replace(/\s+/g, ' ');
+        if (!id) return { valid: false, message: 'Escribe un ID para tu llamada.' };
+        if (id.length > 50) return { valid: false, message: 'El ID es demasiado largo (máximo 50 caracteres).' };
+        if (!/^[A-Za-z0-9]+(?:[ _-][A-Za-z0-9]+)*$/.test(id)) {
+          return { valid: false, message: 'Usa solo letras, números y separadores entre palabras (espacio, guion o guion bajo).' };
+        }
+        return { valid: true, id };
+      }
+
+      function switchToCustomId(newId) {
+        if (activeCall || incomingCall) {
+          setStatus(activeCall
+            ? 'Cuelga la llamada actual antes de cambiar tu ID.'
+            : 'Responde o rechaza primero la llamada entrante.', 'error');
+          return;
+        }
+        if (dataConnection || pendingDataConnection) {
+          setStatus('Espera a que termine la conversación antes de cambiar tu ID.', 'error');
+          return;
+        }
+        if (newId === peer.id) {
+          setStatus('Ya usas ese ID.', 'success');
+          return;
+        }
+        persistPeerId(newId);
+        createPeer(newId);
+        setStatus('Conectando con tu nuevo ID…', 'busy');
+      }
+
+      function createPeer(id) {
+        if (peer && !peer.destroyed) peer.destroy();
+        peer = id ? new Peer(id) : new Peer();
+        attemptedPeerId = peer.id || id || '';
+        elements.myId.textContent = 'Conectando…';
+        elements.copyButton.disabled = true;
+        elements.callButton.disabled = true;
+
+        peer.on('open', (openedId) => {
+          // Reutiliza siempre el mismo ID al volver a abrir la aplicación.
+          persistPeerId(openedId);
+          attemptedPeerId = openedId;
+          elements.myId.textContent = openedId;
+          elements.customIdInput.value = openedId;
+          elements.copyButton.disabled = false;
+          elements.callButton.disabled = false;
+          setStatus('Listo para llamar. Tu ID queda guardado en este navegador.', 'success');
+        });
+
+        peer.on('connection', (connection) => {
+          const expectedPeer = activeCall?.peer || incomingCall?.peer;
+          if (expectedPeer && connection.peer === expectedPeer) {
+            setupDataConnection(connection);
+          } else if (expectedPeer || dataConnection || pendingDataConnection) {
+            connection.close();
+          } else if (!dataConnection && !pendingDataConnection) {
+            pendingDataConnection = connection;
+            pendingDataTimeout = setTimeout(() => {
+              if (pendingDataConnection !== connection) return;
+              pendingDataConnection = null;
+              pendingDataTimeout = null;
+              connection.close();
+            }, 15000);
+            connection.on('close', () => {
+              if (pendingDataConnection !== connection) return;
+              pendingDataConnection = null;
+              if (pendingDataTimeout) clearTimeout(pendingDataTimeout);
+              pendingDataTimeout = null;
+            });
+            connection.on('error', (error) => {
+              console.error('Error en la conexión de chat pendiente:', error);
+              if (pendingDataConnection === connection) pendingDataConnection = null;
+            });
+          } else {
+            connection.close();
+          }
+        });
+
+        peer.on('call', (call) => {
+          if (call.metadata && call.metadata.type === 'screen') {
+            if (activeCall && call.peer === activeCall.peer && !screenCall) listenToScreenCall(call);
+            else call.close();
+            return;
+          }
+          if (activeCall || incomingCall) {
+            call.close();
+            return;
+          }
+          showIncoming(call);
+        });
+
+        peer.on('error', (error) => {
+          console.error('Error de PeerJS:', error);
+          let message;
+          if (error.type === 'peer-unavailable') {
+            message = 'No encontramos ese ID. Pide a tu amigo que lo revise.';
+          } else if (error.type === 'unavailable-id') {
+            message = 'Ese ID ya está en uso en otra pestaña o dispositivo. Elige otro ID o cierra la otra sesión y recarga.';
+            elements.myId.textContent = attemptedPeerId || 'Generando tu ID…';
+          } else {
+            message = 'Error de conexión con PeerJS: ' + (error.message || error.type || 'desconocido');
+          }
+          if (activeCall) endCall(message, 'error');
+          else setStatus(message, 'error');
+        });
+
+        peer.on('disconnected', () => setStatus('Conexión de señalización perdida. Recarga la página para reconectar.', 'error'));
+      }
+
+      createPeer(readPersistedPeerId());
+
+      elements.callForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const friendId = elements.friendId.value.trim();
+        if (friendId) startOutgoingCall(friendId);
+      });
+
+      elements.copyButton.addEventListener('click', copyId);
+      elements.customIdForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const result = validateCustomId(elements.customIdInput.value);
+        if (!result.valid) {
+          setStatus(result.message, 'error');
+          return;
+        }
+        switchToCustomId(result.id);
+      });
+      elements.enableAudio.addEventListener('click', () => {
+        elements.remoteAudio.play().then(() => {
+          elements.enableAudio.hidden = true;
+          setStatus('Audio activado. Llamada conectada.', 'success');
+        }).catch(() => setStatus('No se pudo activar el audio. Comprueba el volumen del navegador.', 'error'));
+      });
+      elements.acceptButton.addEventListener('click', acceptIncomingCall);
+      elements.rejectButton.addEventListener('click', rejectIncomingCall);
+      elements.shareScreen.addEventListener('click', startScreenSharing);
+      elements.stopScreen.addEventListener('click', () => stopScreenSharing());
+      elements.fullscreenScreen.addEventListener('click', toggleScreenFullscreen);
+      document.addEventListener('fullscreenchange', updateScreenControls);
+      elements.hangupButton.addEventListener('click', () => endCall());
+      elements.chatForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const message = elements.chatInput.value.trim();
+        if (!message) return;
+        if (!dataConnection || !dataConnection.open) {
+          setChatState('Espera a que el chat se conecte…', 'connecting');
+          return;
+        }
+        try {
+          dataConnection.send({ type: 'chat', text: message });
+          appendChatMessage(message, 'mine');
+          elements.chatInput.value = '';
+          elements.chatInput.focus();
+        } catch (error) {
+          console.error('No se pudo enviar el mensaje:', error);
+          setChatState('No se pudo enviar el mensaje.', 'error');
+        }
+      });
+
+      updateScreenControls();
+
+      window.addEventListener('beforeunload', () => {
+        stopScreenSharing(false);
+        finishLocalStream();
+        if (peer && !peer.destroyed) peer.destroy();
+      });
+    })();
+  </script>
+</body>
+</html>

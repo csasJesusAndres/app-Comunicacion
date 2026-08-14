@@ -1,0 +1,14 @@
+{
+  "$schema": "https://wails.io/schemas/config.v2.json",
+  "name": "app-comunicacion",
+  "outputfilename": "voz-p2p",
+  "frontend:dir": ".",
+  "assetdir": ".",
+  "info": {
+    "companyName": "VenusBar",
+    "productName": "Voz P2P",
+    "productVersion": "1.0.0",
+    "comments": "Llamadas, chat y pantalla compartida mediante PeerJS/WebRTC.",
+    "copyright": "Copyright © VenusBar"
+  }
+}

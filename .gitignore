@@ -1,0 +1,10 @@
+# Go
+/voz-p2p
+*.exe
+
+# Wails build output
+/build/
+/wailsjs/
+
+# Go tooling
+/vendor/
